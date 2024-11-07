@@ -10,6 +10,10 @@ beforeAll(async () => {
   restaurantQuantity = restaurants.length;
 });
 
+afterAll(async () => {
+  await syncSeed();
+});
+
 describe("Testing /restaurants Route", () => {
   test("GET /restaurants returns Status Code 200", async () => {
     //Arrange /Act
@@ -71,5 +75,55 @@ describe("Testing /restaurants Route", () => {
     const restaurant = await Restaurant.findAll();
     //Assert
     expect(restaurant[0].id).not.toBe(1);
+  });
+
+  describe("POST /restaurants Error Array is returned when:", () => {
+    test("name field is empty", async () => {
+      //Arrange / Act
+      const response = await request(app)
+        .post("/restaurants")
+        .send({ location: "Bristol", cuisine: "Indian" });
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContainEqual({
+        type: "field",
+        msg: "Invalid value",
+        path: "name",
+        location: "body",
+      });
+    });
+
+    test("location field is empty", async () => {
+      //Arrange / Act
+      const response = await request(app)
+        .post("/restaurants")
+        .send({ name: "Sunny's Kitchen", cuisine: "Indian" });
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContainEqual({
+        type: "field",
+        msg: "Invalid value",
+        path: "location",
+        location: "body",
+      });
+    });
+
+    test("cuisine field is empty", async () => {
+      //Arrange / Act
+      const response = await request(app)
+        .post("/restaurants")
+        .send({ name: "Sunny's Kitchen", location: "Bristol" });
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContainEqual({
+        type: "field",
+        msg: "Invalid value",
+        path: "cuisine",
+        location: "body",
+      });
+    });
   });
 });
